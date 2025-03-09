@@ -1,72 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import maplibregl, { RequestParameters } from 'maplibre-gl'
+import maplibregl from 'maplibre-gl'
+import { useGsiTerrainSource } from 'maplibre-gl-gsi-terrain'
 import * as turf from '@turf/turf'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import './App.css'
-
-// 地形データ変換モジュール
-const gsidem2terrainrgb = (r: number, g: number, b: number) => {
-  let height = r * 655.36 + g * 2.56 + b * 0.01;
-
-  if (r === 128 && g === 0 && b === 0) {
-    height = 0;
-  } else if (r >= 128) {
-    height -= 167772.16;
-  }
-
-  height += 10000;
-  height *= 10;
-
-  const tB = (height / 256 - Math.floor(height / 256)) * 256;
-  const tG = (Math.floor(height / 256) / 256 - Math.floor(Math.floor(height / 256) / 256)) * 256;
-  const tR = (Math.floor(Math.floor(height / 256) / 256) / 256 - Math.floor(Math.floor(Math.floor(height / 256) / 256) / 256)) * 256;
-
-  return [tR, tG, tB];
-};
-
-// 地形データ変換プロトコルの追加
-maplibregl.addProtocol('gsidem', (params: RequestParameters, callback: any) => {
-  return new Promise(() => {
-    const image = new Image();
-    image.crossOrigin = '';
-
-    image.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = image.width;
-      canvas.height = image.height;
-      const context = canvas.getContext('2d');
-      if (!context) return callback(new Error('Failed to get canvas context'));
-
-      context.drawImage(image, 0, 0);
-      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-      const pixels = imageData.data;
-
-      for (let i = 0; i < pixels.length; i += 4) {
-        const [r, g, b] = gsidem2terrainrgb(pixels[i], pixels[i + 1], pixels[i + 2]);
-        pixels[i] = r;
-        pixels[i + 1] = g;
-        pixels[i + 2] = b;
-        pixels[i + 3] = 255;
-      }
-
-      context.putImageData(imageData, 0, 0);
-      canvas.toBlob(blob => {
-        if (!blob) return callback(new Error('Failed to create blob'));
-        const reader = new FileReader();
-        reader.onload = () => callback(null, { data: reader.result as ArrayBuffer });
-        reader.onerror = () => callback(new Error('Failed to read blob'));
-        reader.readAsArrayBuffer(blob);
-      });
-    };
-
-    image.onerror = () => callback(new Error('Failed to load image'));
-    image.src = params.url.replace('gsidem://', '');
-
-    return {
-      cancel: () => {}
-    };
-  });
-});
 
 // 相模野基線の2点
 const BASELINE_POINTS = {
@@ -446,15 +383,8 @@ function App() {
     // 地図の読み込み完了後にマーカーと基線を追加
     map.current.on('load', () => {
       // 地形データのソースを追加
-      map.current!.addSource('terrain', {
-        type: 'raster-dem',
-        tiles: [
-          'https://xs489works.xsrv.jp/raster-tiles/gsi/gsi-dem-terrain-rgb/{z}/{x}/{y}.png'
-        ],
-        tileSize: 256,
-        maxzoom: 14,
-        attribution: '地形データ：国土地理院'
-      });
+      const gsiTerrainSource = useGsiTerrainSource(maplibregl.addProtocol);
+      map.current!.addSource('terrain', gsiTerrainSource);
 
       // 地形の陰影を追加
       map.current!.addLayer({
@@ -473,7 +403,7 @@ function App() {
       // 地形の3D表示を設定
       map.current!.setTerrain({ 
         source: 'terrain', 
-        exaggeration: 1
+        exaggeration: 1.2
       });
 
       // カメラの設定を調整
