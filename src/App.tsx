@@ -9,12 +9,12 @@ import './App.css'
 const BASELINE_POINTS = {
   shimomizo: {
     name: '下溝村',
-    coordinates: [139.4063972, 35.5312611] as [number, number],
+    coordinates: [139.406397, 35.531261] as [number, number],
     elevation: 42.1 // メートル
   },
   zama: {
     name: '座間村',
-    coordinates: [139.4342639, 35.490194] as [number, number],
+    coordinates: [139.434264, 35.490194] as [number, number],
     elevation: 86.3 // メートル
   }
 };
@@ -23,12 +23,12 @@ const BASELINE_POINTS = {
 const FIRST_TRIANGULATION_POINTS = {
   tobio: {
     name: '鳶尾山',
-    coordinates: [139.324846833, 35.504496972] as [number, number],
+    coordinates: [139.324847, 35.504497] as [number, number],
     elevation: 237.2 // メートル
   },
   nagatsuta: {
     name: '長津田村',
-    coordinates: [139.4950, 35.5283] as [number, number],
+    coordinates: [139.483583, 35.512028] as [number, number],
     elevation: 98.5 // メートル
   }
 };
@@ -37,12 +37,12 @@ const FIRST_TRIANGULATION_POINTS = {
 const SECOND_TRIANGULATION_POINTS = {
   renkoji: {
     name: '連光寺村',
-    coordinates: [139.4650333, 35.6307556] as [number, number],
+    coordinates: [139.465033, 35.630756] as [number, number],
     elevation: 175.4 // メートル
   },
   asama: {
     name: '浅間山',
-    coordinates: [139.312342139, 35.322127361] as [number, number],
+    coordinates: [139.312342, 35.322127] as [number, number],
     elevation: 98.7 // メートル
   }
 };
@@ -51,17 +51,17 @@ const SECOND_TRIANGULATION_POINTS = {
 const FINAL_TRIANGULATION_POINTS = {
   tanzawa: {
     name: '丹沢山',
-    coordinates: [139.162679917, 35.474293111] as [number, number],
+    coordinates: [139.16268, 35.474293] as [number, number],
     elevation: 1567.1 // メートル
   },
   kano: {
     name: '鹿野山',
-    coordinates: [139.955735083, 35.254981639] as [number, number],
+    coordinates: [139.955735, 35.254982] as [number, number],
     elevation: 352.8 // メートル
   },
   origin: {
     name: '日本経緯度原点',
-    coordinates: [139.741357472, 35.658099222] as [number, number],
+    coordinates: [139.741357, 35.658099] as [number, number],
     elevation: 25.7 // メートル
   }
 };
@@ -180,7 +180,7 @@ function App() {
 
     const currentDistance = (lineDistance * animationProgress) / 100;
     const currentPoint = turf.along(line, currentDistance, { units: 'kilometers' });
-    
+
     const partialLine = turf.lineString([
       BASELINE_POINTS.shimomizo.coordinates,
       currentPoint.geometry.coordinates as [number, number]
@@ -252,7 +252,7 @@ function App() {
   // ポップアップコンテンツの生成を更新
   const createPopupContent = (point: { name: string; elevation: number; coordinates: [number, number] }, stage: string) => {
     const connections: Array<{ name: string; coordinates: [number, number] }> = [];
-    
+
     // 現在のステップに応じて接続点を追加
     if (animationStep >= 1 && Object.values(FIRST_TRIANGULATION_POINTS).some(p => p.name === point.name)) {
       connections.push(...Object.values(BASELINE_POINTS));
@@ -335,7 +335,7 @@ function App() {
     setAnimationStep(0);
     setAnimationProgress(0);
     setIsAnimating(false);
-    
+
     // 地図の表示位置をリセット
     map.current?.setZoom(10);
     map.current?.setCenter([139.42, 35.51]);
@@ -401,8 +401,8 @@ function App() {
       });
 
       // 地形の3D表示を設定
-      map.current!.setTerrain({ 
-        source: 'terrain', 
+      map.current!.setTerrain({
+        source: 'terrain',
         exaggeration: 1.2
       });
 
@@ -534,7 +534,7 @@ function App() {
     // 3D表示切り替えボタンのイベントハンドラ
     const toggle3D = () => {
       if (!map.current) return;
-      
+
       const currentPitch = map.current.getPitch();
       if (currentPitch === 0) {
         map.current.easeTo({
@@ -579,7 +579,7 @@ function App() {
           />
           <span>{animationSpeed.toFixed(1)}x</span>
         </div>
-        <button 
+        <button
           onClick={() => {
             setAnimationProgress(0);
             setIsAnimating(true);
@@ -595,7 +595,7 @@ function App() {
           リセット
         </button>
         <div className="progress-bar">
-          <div 
+          <div
             className="progress-fill"
             style={{ width: `${animationProgress}%` }}
           />
